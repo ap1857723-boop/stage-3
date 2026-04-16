@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cinemax Ticket Booking</title>
+    <link rel="stylesheet" href="styles.css?v=6">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="bg-layer" id="bgArtwork"></div>
+    <div class="app-container" style="position:relative; z-index:2;">
+        <header>
+            <div class="header-top">
+                <h1 style="text-shadow: 0 4px 10px rgba(0,0,0,0.5);">🍿 Cinemax VIP</h1>
+                <div class="auth-bar" id="authBar">
+                    <button class="btn btn-secondary btn-sm" onclick="showLogin()">🔑 Login / Signup</button>
+                </div>
+            </div>
+            
+            <div id="welcomeMessage" style="display:none; color: var(--primary); font-weight: 600; text-align: center; margin-bottom:1rem;"></div>
+
+            <p style="color:var(--text-muted);">Select a cinematic experience.</p>
+            
+            <div class="show-selector">
+                <label for="showSelect" style="display:none;">Movie Showing:</label>
+                <select id="showSelect">
+                    <option value="">Loading shows...</option>
+                </select>
+            </div>
+        </header>
+
+        <main>
+            <!-- Movie Info Visuals -->
+            <div class="movie-info-panel" id="movieInfoPanel" style="display:none;">
+                <img id="moviePoster" src="" alt="Movie Poster">
+                <div class="movie-details">
+                    <h2 id="movieTitle">Title</h2>
+                    <p id="movieDesc">Description goes here...</p>
+                </div>
+            </div>
+
+            <div class="screen-container">
+                <div class="screen"></div>
+                <div class="screen-text">All eyes this way</div>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="seat-legend available"></div>
+                    <span id="legendRegPrice">Regular</span>
+                </div>
+                <div class="legend-item">
+                    <div class="seat-legend available vip"></div>
+                    <span id="legendVipPrice">VIP</span>
+                </div>
+                <div class="legend-item">
+                    <div class="seat-legend selected"></div>
+                    <span>Selecting</span>
+                </div>
+                <div class="legend-item" style="opacity: 0.7;">
+                    <div class="seat-legend booked" style="background:#f97316; border-color:#f97316;"></div>
+                    <span>Locked</span>
+                </div>
+                <div class="legend-item">
+                    <div class="seat-legend booked"></div>
+                    <span>Booked</span>
+                </div>
+            </div>
+
+            <div class="seating-area" id="seatingGrid">
+                <div class="loader">Please select a show...</div>
+            </div>
+
+            <div class="booking-panel">
+                <div class="booking-info">
+                    <p>Selected Seats: <span id="selectedSeatsText">None</span></p>
+                    <p class="total-price" id="totalPriceText">Total: ₹0</p>
+                </div>
+                <div class="action-buttons">
+                    <button id="checkoutBtn" class="btn btn-primary" disabled>Proceed to Secure Checkout</button>
+                </div>
+            </div>
+            
+            <div id="notification" class="notification"></div>
+        </main>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-content" style="max-width: 350px;">
+            <button class="close-modal-btn" onclick="closeModal('loginModal')">&times;</button>
+            <h2 style="padding-right:2rem; margin-top:0;">Authentication</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <div class="form-group" id="emailGroup" style="display:none;">
+                    <label>Email Address</label>
+                    <input type="email" id="email" placeholder="Required for Signup only">
+                </div>
+                <!-- Extended Profile Info for Registration -->
+                <div id="extendedRegFields" style="display:none;">
+                    <hr style="border-color: var(--border-color); margin: 1.5rem 0;">
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; text-align: center;">Optional Profile Info</p>
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="regFullName" placeholder="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="text" id="regPhone" placeholder="+1 555-0100">
+                    </div>
+                    <div class="form-group">
+                        <label>Physical Address</label>
+                        <input type="text" id="regAddress" placeholder="123 Cinema Lane">
+                    </div>
+                </div>
+                <p id="authError" style="color:var(--danger); font-size:0.85rem; margin-bottom:1rem; display:none;"></p>
+                <div class="modal-actions" style="flex-direction:column; gap:0.5rem; margin-top: 1rem;">
+                    <button type="submit" class="btn btn-primary w-100" id="loginActionButton">Login</button>
+                    <button type="button" class="btn btn-secondary w-100" onclick="toggleRegister()" id="toggleRegBtn">Switch to Register</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div class="modal-overlay" id="checkoutModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <button class="close-modal-btn" onclick="cancelCheckout()">&times;</button>
+            <div style="display:flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; padding-right:2rem;">
+                <h2 style="border:none; margin:0; padding:0;">Stripe Checkout</h2>
+                <div style="font-size:1.5rem; color:#60a5fa; margin-right: 1.5rem;">💳</div>
+            </div>
+            <p style="color:var(--danger); font-weight: 500; font-size:0.85rem; margin-bottom:1rem;">⚠️ Seats are reserved securely for <strong>5 Minutes</strong>.</p>
+            
+            <div class="receipt-summary" id="checkoutSummary"></div>
+            
+            <form id="paymentForm">
+                <div class="form-group">
+                    <label>Cardholder Name</label>
+                    <input type="text" required placeholder="John Doe" id="cardName">
+                </div>
+                <div class="form-group">
+                    <label>Card Number (Stripe Mock)</label>
+                    <input type="text" maxlength="19" required placeholder="4242 4242 4242 4242" id="cardNumber" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1').replace(/^(\d{4})(\d{4})(\d{4})(\d{4})$/, '$1 $2 $3 $4');">
+                </div>
+                <div style="display:flex; gap:1rem;">
+                    <div class="form-group" style="flex:1;">
+                        <label>Expiry Date</label>
+                        <input type="text" maxlength="5" required placeholder="MM/YY" id="cardExp">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>CVC</label>
+                        <input type="text" maxlength="3" required placeholder="123" id="cardCvc">
+                    </div>
+                </div>
+                <div class="modal-actions" style="margin-top:1.5rem;">
+                    <button type="button" class="btn btn-secondary w-100" onclick="cancelCheckout()">Cancel (Release Locks)</button>
+                    <button type="submit" class="btn btn-primary w-100" id="confirmPaymentBtn">Confirm & Pay</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div class="modal-overlay" id="receiptModal">
+        <div class="modal-content receipt-content">
+            <button class="close-modal-btn" onclick="closeModal('receiptModal')">&times;</button>
+            <div class="success-icon" style="margin-top: 1rem;">✨</div>
+            <h2 style="border:none; margin-bottom:0.5rem; padding:0;">Purchase Successful!</h2>
+            <p style="color: #22c55e; margin-bottom: 1rem; font-weight: 500;">Payment successfully routed through Stripe.</p>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">We've securely forwarded your digital E-Ticket straight to your registered email address inbox!</p>
+            <div class="receipt-details" id="receiptDetails" style="margin-top: 2rem;"></div>
+            <button class="btn btn-secondary w-100" style="margin-top: 1rem;" onclick="closeModal('receiptModal')">Done</button>
+        </div>
+    </div>
+
+    <!-- PRO DEVELOPER: My Tickets User Portal -->
+    <div class="modal-overlay" id="userTicketsModal">
+        <div class="modal-content" style="max-width: 700px; padding: 1.5rem;">
+            <button class="close-modal-btn" onclick="closeModal('userTicketsModal')">&times;</button>
+            <h2 style="margin-top:0.5rem; margin-bottom: 1.5rem;"><span style="font-size:1.5rem;">🎟️</span> My Ticket History</h2>
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr><th>TKT-ID</th><th>Movie</th><th>Seat</th><th>Date</th></tr>
+                    </thead>
+                    <tbody id="userTicketsBody">
+                        <tr><td colspan="4" style="text-align:center;">Loading records...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- User Profile Modal -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal-content" style="max-width: 450px;">
+            <button class="close-modal-btn" onclick="closeModal('profileModal')">&times;</button>
+            <h2 style="margin-top: 0; padding-right: 2rem;">👤 Profile Manager</h2>
+            <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1.5rem;">View and update your personal information securely synced across devices.</p>
+            <form id="profileForm">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="profUsername" disabled style="opacity: 0.5;">
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="profEmail" disabled style="opacity: 0.5;">
+                </div>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="profFullName" placeholder="Not set">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="text" id="profPhone" placeholder="Not set">
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" id="profAddress" placeholder="Not set">
+                </div>
+                <div class="modal-actions" style="margin-top:1.5rem; flex-direction:column;">
+                    <button type="submit" class="btn btn-primary w-100" id="profSaveBtn">Save Changes</button>
+                    <button type="button" class="btn btn-secondary w-100" onclick="closeModal('profileModal')" style="margin-top:0.5rem;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
